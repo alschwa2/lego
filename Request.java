@@ -2,6 +2,10 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
+/*
+ * Class for the request that the client sends to the server.
+ * Basically a wrapper around a Map of (String)<SET_NAME> to (int)<QUANTITY> of the set
+ */
 public class Request implements Serializable
 {
 	private HashMap<String, Integer> sets;

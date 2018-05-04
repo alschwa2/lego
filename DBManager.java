@@ -5,7 +5,22 @@ import java.util.concurrent.Semaphore;
 
 import java.util.LinkedList;
 /*
- * This class is the interface between the Server and the Database.
+ * 
+	What is this class:
+
+ 	This class is the interface between the Server and the Database.
+ 	***** WE ARE GOING TO CHANGE THIS FROM AN ABSTRACT CLASS TO AN INTERFACE SOON****
+ 	***** THE INTERFACE IS NOT DONE YET. DO NOT TRY TO IMPLEMENT THE INTERFACE UNTIL IT IS CONFIRMED AS FINISHED *****
+ 	Basically, this is going to be the interface that the Server talks to get information from the database.
+ 	The methods are going to be in terms of Sets and Parts. How this translates to dynamo queries is going to be the job
+ 		of the Dynamo team. They are going to create a class that implements this interface.
+ 	The application team will create a dummy implementation for testing purposes so that each team can work independantly.
+
+
+
+
+
+	Copied and pasted from the assignment:
 
 	 There are roughly 26,000 parts and 11,000 sets in the data set. You will load all that data into the data store.
 	 To keep things manageable and avoid the need for transactions and/or locking, we will make the connection between
