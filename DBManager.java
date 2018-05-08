@@ -1,9 +1,3 @@
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.Semaphore;
-
-import java.util.LinkedList;
 /*
  * 
 	What is this class:
@@ -47,19 +41,9 @@ import java.util.LinkedList;
  */
 public abstract class DBManager
 {
-	private ThreadPoolExecutor threadPool;
-
-	private DBManager() {
-		this.threadPool = new ThreadPoolExecutor(25, 25, 1, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(), new ThreadPoolExecutor.AbortPolicy());
-		this.threadPool.prestartAllCoreThreads();
-	}
 	public boolean setIsAvailible(String set);
 
-	public boolean partsAreAvailible(String set) {
-		LinkedList<String> parts = getMissingParts();
-		if (parts.size() == 0) return true;
-		return false;
-	}
+	public boolean partsAreAvailible(String set);
 
 	public boolean orderSet(String set);
 
@@ -69,38 +53,11 @@ public abstract class DBManager
 
 	/*
 	 */
-	public boolean orderParts(String set) {
-		//get list of parts
-		LinkedList<String> parts = getMissingParts(set);
-		//the semaphore is to make sure that we don't retry to build the set until all of the parts are done manufacturing
-		Semaphore sem = new Semaphore(parts.size());
-
-		for (String part : parts) {
-			sem.acquire();
-			//the thread that manufactures parts
-			threadPool.execute(()->{
-				Thread.sleep(100);
-				incrementPartByThirty(part);
-				sem.release();
-			});
-		}
-
-		//can't manufacture until all of the parts are acquired
-		sem.acquire(parts.size());
-
-		for (String part : parts) {
-			decrementPart();
-
-		}
-	}
+	public boolean orderParts(String set);
 
 	private LinkedList<String> getMissingParts(String set);
 
 	private boolean incrementPartByThirty(String part);
-
-	private void spawnTimerThread() {
-		threadPool.execute(()->{Thread.sleep(100);});
-	}
 }
 /*
 
