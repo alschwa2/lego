@@ -1,20 +1,12 @@
+import java.util.Set;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.Semaphore;
+
+import java.util.LinkedList;
 /*
- * 
-	What is this class:
-
- 	This class is the interface between the Server and the Database.
- 	***** WE ARE GOING TO CHANGE THIS FROM AN ABSTRACT CLASS TO AN INTERFACE SOON****
- 	***** THE INTERFACE IS NOT DONE YET. DO NOT TRY TO IMPLEMENT THE INTERFACE UNTIL IT IS CONFIRMED AS FINISHED *****
- 	Basically, this is going to be the interface that the Server talks to get information from the database.
- 	The methods are going to be in terms of Sets and Parts. How this translates to dynamo queries is going to be the job
- 		of the Dynamo team. They are going to create a class that implements this interface.
- 	The application team will create a dummy implementation for testing purposes so that each team can work independantly.
-
-
-
-
-
-	Copied and pasted from the assignment:
+ * This class is the interface between the Server and the Database.
 
 	 There are roughly 26,000 parts and 11,000 sets in the data set. You will load all that data into the data store.
 	 To keep things manageable and avoid the need for transactions and/or locking, we will make the connection between
@@ -41,26 +33,24 @@
  */
 public abstract class DBManager
 {
-	public boolean setIsAvailible(String set);
+	private ThreadPoolExecutor threadPool;
 
-	public boolean partsAreAvailible(String set);
+	private DBManager() {
+		this.threadPool = new ThreadPoolExecutor(25, 25, 1, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(), new ThreadPoolExecutor.AbortPolicy());
+		this.threadPool.prestartAllCoreThreads();
+	}
 
-	public boolean orderSet(String set);
+    public abstract int getPartCount(String part);
 
-	public boolean decrementSet(String set);
+	public abstract boolean decrementSet(int set, int amount);
 
-	public boolean getParts(String set);
+	public abstract Set<String> getParts(int set);
 
-	/*
-	 */
-	public boolean orderParts(String set);
+    public abstract void incrementPart(String part, int incrementPartsBy);
 
-	private LinkedList<String> getMissingParts(String set);
+    public abstract Integer getSetQuantity(Integer set);
 
-	private boolean incrementPartByThirty(String part);
+    public abstract void incrementSet(Integer set);
+
+    public abstract void decrementPart(String part);
 }
-/*
-
-Okay so we have to deal with the fact that each part can appear multiple times in the set. How do we do that? 
-
-*/

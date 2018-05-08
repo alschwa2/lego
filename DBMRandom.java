@@ -1,11 +1,6 @@
 import java.util.Random;
 
-/*
-	This is going to be a dummy implementation of the DBmanager that the application team uses to test the application.
-	See header comment in DBManager for more info. 
-*/
-
-public class DBMRandom implements DBManager {
+public class DBMRandom extends DBManager {
 
 	Random random;
 
