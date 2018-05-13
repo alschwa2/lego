@@ -31,15 +31,8 @@ import java.util.LinkedList;
 				order.
 			 When an order is filled, the server will include an order shipped message to the client
  */
-public abstract class DBManager
+public interface DBManager
 {
-	private ThreadPoolExecutor threadPool;
-
-	private DBManager() {
-		this.threadPool = new ThreadPoolExecutor(25, 25, 1, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(), new ThreadPoolExecutor.AbortPolicy());
-		this.threadPool.prestartAllCoreThreads();
-	}
-
     public abstract int getPartCount(String part);
 
 	public abstract boolean decrementSet(int set, int amount);
@@ -48,9 +41,9 @@ public abstract class DBManager
 
     public abstract void incrementPart(String part, int incrementPartsBy);
 
-    public abstract Integer getSetQuantity(Integer set);
+    public abstract int getSetQuantity(int set);
 
-    public abstract void incrementSet(Integer set);
+    public abstract void incrementSet(int set);
 
     public abstract void decrementPart(String part);
 }
