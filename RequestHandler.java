@@ -57,7 +57,7 @@ public class RequestHandler implements Runnable {
                     for (String part : setParts) { //for every part of this set
                         actualPartQuantity = DB.getPartCount(part);
                         neededPartQuantity = sets.get(set); 
-                        REWRITE
+                        
                         if (neededParts.containsKey(part)) neededPartQuantity += neededParts.get(part);
 
                         if (actualPartQuantity < neededPartQuantity) {//if we do not have sufficient parts to make a new set
