@@ -1,19 +1,44 @@
 import java.util.Random;
+import java.util.HashSet;
+import java.util.Set;
 
-public class DBMRandom extends DBManager {
+public class DBMRandom implements DBManager {
 
 	Random random;
 
 	public DBMRandom() {
-		super();
 		this.random = new Random();
 	}
 
-	public boolean setIsAvailible(String set) {
-		return this.random.nextBoolean();
+    public int getPartCount(String part) {
+    	return 0;
+    }
+
+	public void decrementSet(int set, int amount) {
+		return;
 	}
-	
-	public boolean partsAreAvailible(String set) {
-		return this.random.nextBoolean();
+
+	public Set<String> getParts(int set) {
+		HashSet<String> randomSet = new HashSet<String>();
+
+		for (int i = 0; i < 30; i++) randomSet.add("" + random.nextInt(1000));
+
+		return randomSet;
 	}
+
+    public void incrementPart(String part, int incrementPartsBy) {
+    	return;
+    }
+
+    public int getSetQuantity(int set) {
+    	return 0;
+    }
+
+    public void incrementSet(int set) {
+    	return;
+    }
+
+    public void decrementPart(String part) {
+    	return;
+    }
 }

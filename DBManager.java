@@ -35,7 +35,7 @@ public interface DBManager
 {
     public abstract int getPartCount(String part);
 
-	public abstract boolean decrementSet(int set, int amount);
+	public abstract void decrementSet(int set, int amount);
 
 	public abstract Set<String> getParts(int set);
 

@@ -5,6 +5,9 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+/*
+ *	***Issues found***
+ */
 public class RequestHandler implements Runnable {
 
     private Request request;
@@ -24,7 +27,7 @@ public class RequestHandler implements Runnable {
     public void run(){
 
         HashMap<Integer, Integer> sets = request.getSets(); //setNames/quantities desired
-        Set<Integer> setNameList = sets.keySet(); // ste of names of sets wanted by client
+        Set<Integer> setNameList = sets.keySet(); // set of names of sets wanted by client
         List<Integer> NA = new ArrayList<Integer>(); // list to contain sets that are not available
         Boolean setsInStock = false; // boolean to be used later
 
@@ -44,23 +47,28 @@ public class RequestHandler implements Runnable {
 
                 HashMap<Integer, Set<String>> parts = new HashMap<Integer, Set<String>>(); //a map mapping the set name to a set of its parts needed
                 Map<String, Integer> neededParts = new HashMap<String, Integer>();//part needed and amount needed
+
                 int actualPartQuantity, neededPartQuantity, differenceNeeded = 0; // placeholders for later
 
-                for (Integer set : setNameList) { //for every set
+                for (Integer set : NA) { //for every set
                     Set<String> setParts = DB.getParts(set);//get a set of its parts and put that set in a map under the set's name
                     parts.put(set, setParts);
 
                     for (String part : setParts) { //for every part of this set
                         actualPartQuantity = DB.getPartCount(part);
-                        neededPartQuantity = sets.get(set);
+                        neededPartQuantity = sets.get(set); 
+                        REWRITE
+                        if (neededParts.containsKey(part)) neededPartQuantity += neededParts.get(part);
 
-                        if (actualPartQuantity < neededPartQuantity) //if we do not have sufficient parts to make a new set
+                        if (actualPartQuantity < neededPartQuantity) {//if we do not have sufficient parts to make a new set
                             differenceNeeded = neededPartQuantity - actualPartQuantity; //find out how many parts we need
 
-                            if(neededParts.containsKey(part)) //if the part was already needed by another set, need to update amount needed for that part
-                                differenceNeeded += neededParts.get(part);
-
-                            neededParts.put(part, differenceNeeded); // at least this amount of parts will be ordered
+	                        if (neededParts.containsKey(part)) { //if the part was already needed by another set, need to update amount needed for that part
+	                            differenceNeeded += neededParts.get(part);
+	                        } else {                            // at least this amount of parts will be ordered
+	                        	neededParts.put(part, differenceNeeded); 
+	                        }
+	                    }
                     }
                 }
 
@@ -111,7 +119,7 @@ public class RequestHandler implements Runnable {
     private void incrementParts(Map<String, Integer> parts) {
         Set<String> partNames = parts.keySet();
         for(String part : partNames){
-            int extraIncrement = (incrementPartsBy * (parts.get(part) / incrementPartsBy)); //ensures that, if parts needed is less than normal increment, will increment by more than normal increment
+            int extraIncrement = incrementPartsBy * roundUp(parts.get(part), incrementPartsBy);
             DB.incrementPart(part, incrementPartsBy + extraIncrement);
         }
     }
@@ -134,8 +142,8 @@ public class RequestHandler implements Runnable {
     private void manufactureParts(Map<String, Integer> neededParts) {
         List<Callable<Object>> partRunnables = new ArrayList<Callable<Object>>();
         int numberOfParts = neededParts.size();
-        for(int i=0; i<numberOfParts; i++){
-            partRunnables.add(Executors.callable(new partConstructor()));
+        for(int amount : neededParts.values()){
+            partRunnables.add(Executors.callable(new partConstructor(roundUp(amount, incrementPartsBy) * 100)));
         }
         try {
             partConstructorThreadPool.invokeAll(partRunnables);
@@ -148,7 +156,11 @@ public class RequestHandler implements Runnable {
     }
 
     class partConstructor implements Runnable{
+    	private int time = 100;
 
+    	public partConstructor(int time) {
+    		this.time = time;
+    	}
         @Override
         public void run() {
             try {
@@ -173,5 +185,11 @@ public class RequestHandler implements Runnable {
         for(Integer set : requestedSets){
             DB.decrementSet(set, sets.get(set));
         }
+    }
+
+
+    //got this from here: https://stackoverflow.com/questions/7446710/how-to-round-up-integer-division-and-have-int-result-in-java
+    private int roundUp(int num, int divisor) {
+        return (num + divisor - 1) / divisor;
     }
 }
