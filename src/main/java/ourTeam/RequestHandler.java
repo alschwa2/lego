@@ -35,7 +35,7 @@ public class RequestHandler implements Runnable {
     public void run() {
         HashMap<Integer, Integer> requestedSetsMap = request.getSets(); //setNames/quantities desired
         Set<Integer> requestedSetNames = requestedSetsMap.keySet(); // set of names of sets wanted by client
-        List<Integer> setsNotAvailable = new ArrayList<Integer>(); // list to contain sets that are not available
+        HashMap<Integer, Integer> setsNotAvailable = new HashMap<>(); // list to contain sets that are not available
 
         DBLock.writeLock().lock(); //the check and shipping, though it starts with a read, are both write locked to ensure set is not used between checking and shipping
             
@@ -43,8 +43,10 @@ public class RequestHandler implements Runnable {
          * figure out which sets we do not have in stock
          */
         for (Integer set : requestedSetNames) { //check if sets are in stock
-            if (requestedSetsMap.get(set) < DB.getSetQuantity(set))
-                setsNotAvailable.add(set);
+            int amountNeeeded = requestedSetsMap.get(set);
+            int amountAvailable = DB.getSetQuantity(set);
+            if (amountNeeeded > amountAvailable)
+                setsNotAvailable.put(set, amountNeeeded - amountAvailable);
         }
 
         /*
@@ -62,14 +64,14 @@ public class RequestHandler implements Runnable {
              * figure out how much we need of which parts are needed in total to complete the order
              */
             Map<String, Integer> neededParts = new HashMap<String, Integer>();//part needed and amount needed
-            for (Integer set : setsNotAvailable) { //for every set
+            for (Integer set : setsNotAvailable.keySet()) { //for every set
                 Set<String> setParts = DB.getParts(set);//get a set of its parts and put that set in a map under the set's name
 
                 for (String part : setParts) { //for every part of this set
                     if (!neededParts.containsKey(part)) {
-                        neededParts.put(part, requestedSetsMap.get(set));
+                        neededParts.put(part, setsNotAvailable.get(set)); //need one copy of the part per copy of the set
                     } else {
-                        neededParts.put(part, requestedSetsMap.get(set) + neededParts.get(part));
+                        neededParts.put(part, setsNotAvailable.get(set) + neededParts.get(part));
                     }
                 }
             }
@@ -95,7 +97,7 @@ public class RequestHandler implements Runnable {
             /*
              * manufacture those parts
              */
-            if (!neededParts.isEmpty()) { //the map of needed parts is not empty, we must need to order some parts
+            if (!partsToManufacture.isEmpty()) { //the map of needed parts is not empty, we must need to order some parts
 
                 DBLock.writeLock().unlock(); //this will take a while, should release locks
 
@@ -113,7 +115,7 @@ public class RequestHandler implements Runnable {
             /*
              * turn the parts into sets
              */
-            manufactureSets(requestedSetsMap);
+            manufactureSets(setsNotAvailable);
         }
 
         /*
@@ -144,15 +146,15 @@ public class RequestHandler implements Runnable {
     private void manufactureSets(HashMap<Integer, Integer> sets) {
         Set<Integer> setNames = sets.keySet();
         for(Integer set : setNames){
-            decrementPartsOfSet(set);
-            DB.incrementSet(set);
+            decrementPartsOfSet(set, sets.get(set));
+            for(int i = 0; i < sets.get(set); i++) DB.incrementSet(set); //TODO have to change this to be done in the interface
         }
     }
 
-    private void decrementPartsOfSet(Integer set) {
+    private void decrementPartsOfSet(int set, int amount) {
         Set<String> parts = DB.getParts(set);
         for(String part : parts){
-            DB.decrementPart(part);
+            for(int i = 0; i < amount; i++) DB.decrementPart(part); //TODO change this to be done in the interface
         }
     }
 
@@ -169,7 +171,6 @@ public class RequestHandler implements Runnable {
 
     private void manufactureParts(Map<String, Integer> neededParts) {
         List<Callable<Object>> partRunnables = new ArrayList<Callable<Object>>();
-        int numberOfParts = neededParts.size();
         for(int amount : neededParts.values()){
             partRunnables.add(Executors.callable(new partConstructor(roundUp(amount, incrementPartsBy) * 100)));
         }
