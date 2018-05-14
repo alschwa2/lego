@@ -32,7 +32,7 @@ public class Client
 
 			System.out.println(fromServer.nextLine());
 
-			int tries = 10;
+			int tries = 1;
 			while (tries > 0) {
 				Request request = buildRequest();
 

@@ -1,6 +1,7 @@
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.Scanner;
 
 import java.io.IOException;
@@ -37,27 +38,10 @@ import java.net.Socket;
 
 public class Server
 {
-
-	/*
-	 * This will be run from threads in the threadpool.
-	 */
-	class Handler implements Runnable {
-		Request request;
-		PrintWriter toClient;
-
-		public Handler(Request request, PrintWriter toClient) {
-			this.request = request;
-			this.toClient = toClient;
-		}
-		
-		public void run() {
-			toClient.println("Echo: " + request);
-		}
-	}
-	
-
 	// Only 25 unshipped orders at a time. Use a threadpool to enforce this, and to allow concurrency.
 	private ThreadPoolExecutor threadPool;
+	private ThreadPoolExecutor manufacturePartsThreadPool;
+	DBManager db;
 
 	public static void main(String[] args) {
 		Server s = new Server();
@@ -67,6 +51,11 @@ public class Server
 	public Server() {
 		this.threadPool = new ThreadPoolExecutor(25, 25, 1, TimeUnit.MILLISECONDS, new SynchronousQueue<Runnable>(), new ThreadPoolExecutor.DiscardPolicy());
 		this.threadPool.prestartAllCoreThreads();
+
+		this.manufacturePartsThreadPool = new ThreadPoolExecutor(100, 25, 1, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(), new ThreadPoolExecutor.DiscardPolicy());
+		this.manufacturePartsThreadPool.prestartAllCoreThreads();
+		
+		this.db = new DBMRandom();
 	}
 
 	/*
@@ -75,41 +64,40 @@ public class Server
 	 * If there is no room on the queue, reject the request.
 	 */
 	private void listenForRequests() {
-		new Thread(()->{
-			//create ServerSocket
-			try (ServerSocket ssc = new ServerSocket(8189)) {
-				//create Socket
-				try (Socket incoming = ssc.accept()) {
+		//create ServerSocket
+		try (ServerSocket ssc = new ServerSocket(8189)) {
+			//create Socket
+			try (Socket incoming = ssc.accept()) {
 
-					ObjectInputStream fromClient = new ObjectInputStream(incoming.getInputStream());
-					PrintWriter toClient = new PrintWriter(new OutputStreamWriter(incoming.getOutputStream(), "UTF-8"), true);
+				ObjectInputStream fromClient = new ObjectInputStream(incoming.getInputStream());
+				PrintWriter toClient = new PrintWriter(new OutputStreamWriter(incoming.getOutputStream(), "UTF-8"), true);
 
-					toClient.println("Hello! Enter BYE to exit.");
+				toClient.println("Hello! Enter BYE to exit.");
 
-					while (true) {
-						try {
-							Request request = (Request) fromClient.readObject();
+				while (true) {
+					try {
+						Request request = (Request) fromClient.readObject();
 
-							/*
-							 * Here is the logic for what this thread should do with the message 
-							 * 	that it recieved from the client
-							 */
-							System.out.println("Recieved request: " + request);
-							threadPool.execute(new Handler(request, toClient));
-							
-						} catch(EOFException e) {
-							this.threadPool.shutdown();
-							return;
-						} catch(ClassNotFoundException e) {
-							System.out.println("Caught ClassNotFoundException: " + e.getMessage());
-							toClient.println("Error: Could not find class.");
-						}
+						/*
+						 * Here is the logic for what this thread should do with the message 
+						 * 	that it recieved from the client
+						 */
+						System.out.println("Recieved request: " + request);
+						//threadPool.execute(new Handler(request, toClient));
+						threadPool.execute(new RequestHandler(request, db, manufacturePartsThreadPool, toClient));
+						
+					} catch(EOFException e) {
+						this.threadPool.shutdown();
+						return;
+					} catch(ClassNotFoundException e) {
+						System.out.println("Caught ClassNotFoundException: " + e.getMessage());
+						toClient.println("Error: Could not find class.");
 					}
 				}
-			} catch (IOException e) {
-				System.err.println(e.getMessage());
-				e.printStackTrace();
 			}
-		}).start();
+		} catch (IOException e) {
+			System.err.println(e.getMessage());
+			e.printStackTrace();
+		}
 	}
 }

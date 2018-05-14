@@ -26,7 +26,7 @@ public class Request implements Serializable
 
 	@Override
 	public String toString() {
-		String returnString = "";
+		String returnString = "Request -> ";
 		for (Map.Entry<Integer, Integer> e : sets.entrySet()) {
 			returnString += e.getKey() + ": " + e.getValue();
 			returnString += "; ";
