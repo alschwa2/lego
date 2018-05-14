@@ -41,15 +41,12 @@ public interface DBManager
 
 	public abstract Set<String> getParts(int set);
 
-    public abstract void incrementPart(String part, int incrementPartsBy);
+    public abstract void incrementPart(String part, int amount);
 
     public abstract int getSetQuantity(int set);
 
-    public abstract void incrementSet(int set);
+    public abstract void incrementSet(int set, int amount);
 
-    public abstract void incrementSetBy(int set, int amount);
-
-    public abstract void decrementPart(String part);
-
-    public abstract void decrementPartBy(String part, int amount);
+    public abstract void decrementPart(String part, int amount);
+    ;
 }
