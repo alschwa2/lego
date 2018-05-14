@@ -36,19 +36,11 @@ public class DBMRandom implements DBManager {
     	return 0;
     }
 
-    public void incrementSet(int set) {
+    public void incrementSet(int set, int amount) {
     	return;
     }
 
-	public void incrementSetBy(int set, int amount) {
-		return;
-	}
-
-    public void decrementPart(String part) {
+    public void decrementPart(String part, int amount) {
     	return;
     }
-
-	public void decrementPartBy(String part, int amount) {
-		return;
-	}
 }

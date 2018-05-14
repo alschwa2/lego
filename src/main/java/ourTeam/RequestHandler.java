@@ -200,7 +200,7 @@ public class RequestHandler implements Runnable {
 
 
     private void informClientSuccess(){
-        toClient.println("Your order has shipped.");
+        toClient.println("Your order (" + request.getName() + ") has shipped.");
     }
 
     //got this from here: https://stackoverflow.com/questions/7446710/how-to-round-up-integer-division-and-have-int-result-in-java

@@ -1,15 +1,9 @@
 package ourTeam;
 
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.SynchronousQueue;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.Scanner;
+import java.util.concurrent.*;
 
 import java.io.IOException;
 import java.io.EOFException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.ObjectInputStream;
@@ -51,7 +45,7 @@ public class Server
 	}
 
 	public Server() {
-		this.threadPool = new ThreadPoolExecutor(25, 25, 1, TimeUnit.MILLISECONDS, new SynchronousQueue<Runnable>(), new ThreadPoolExecutor.DiscardPolicy());
+		this.threadPool = new ThreadPoolExecutor(25, 25, 1, TimeUnit.MILLISECONDS, new SynchronousQueue<Runnable>(), new ThreadPoolExecutor.AbortPolicy());
 		this.threadPool.prestartAllCoreThreads();
 
 		this.manufacturePartsThreadPool = new ThreadPoolExecutor(100, 100, 1, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(), new ThreadPoolExecutor.DiscardPolicy());
@@ -86,7 +80,11 @@ public class Server
 						 */
 						System.out.println("Received request: " + request);
 						//threadPool.execute(new Handler(request, toClient));
-						threadPool.execute(new RequestHandler(request, db, manufacturePartsThreadPool, toClient));
+						try {
+							threadPool.execute(new RequestHandler(request, db, manufacturePartsThreadPool, toClient));
+						} catch (RejectedExecutionException e) {
+							toClient.println("Request Rejected: 25 requests outstanding" + request.toString());
+						}
 						
 					} catch(EOFException e) {
 						this.threadPool.shutdown();

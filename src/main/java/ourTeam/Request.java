@@ -7,9 +7,11 @@ import java.util.Map;
 public class Request implements Serializable
 {
 	private HashMap<Integer, Integer> sets;
+	private String name;
 
 	public Request() {
 		this.sets = new HashMap<Integer, Integer>();
+		this.name = "";
 	}
 
 	public HashMap<Integer, Integer> getSets() {
@@ -26,9 +28,17 @@ public class Request implements Serializable
 		sets.put(setID, amount);
 	}
 
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public String getName() {
+		return this.name;
+	}
+
 	@Override
 	public String toString() {
-		String returnString = "Request -> ";
+		String returnString = "Request (" + name + ") -> ";
 		for (Map.Entry<Integer, Integer> e : sets.entrySet()) {
 			returnString += e.getKey() + ": " + e.getValue();
 			returnString += "; ";
