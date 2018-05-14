@@ -1,3 +1,5 @@
+package ourTeam;
+
 import java.util.Random;
 import java.util.HashSet;
 import java.util.Set;
@@ -11,7 +13,7 @@ public class DBMRandom implements DBManager {
 	}
 
     public int getPartCount(String part) {
-    	return 0;
+    	return random.nextInt(2);
     }
 
 	public void decrementSet(int set, int amount) {

@@ -1,12 +1,12 @@
+package ourTeam;
+
 import java.util.Scanner;
 import java.util.Random;
 
 import java.net.Socket;
-import java.net.InetSocketAddress;
 
 import java.io.IOException;
 import java.io.ObjectOutputStream;
-import java.io.File;
 
 /*
  *
