@@ -54,7 +54,7 @@ public class Server
 		this.threadPool = new ThreadPoolExecutor(25, 25, 1, TimeUnit.MILLISECONDS, new SynchronousQueue<Runnable>(), new ThreadPoolExecutor.DiscardPolicy());
 		this.threadPool.prestartAllCoreThreads();
 
-		this.manufacturePartsThreadPool = new ThreadPoolExecutor(100, 25, 1, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(), new ThreadPoolExecutor.DiscardPolicy());
+		this.manufacturePartsThreadPool = new ThreadPoolExecutor(100, 100, 1, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(), new ThreadPoolExecutor.DiscardPolicy());
 		this.manufacturePartsThreadPool.prestartAllCoreThreads();
 		
 		this.db = new DBMRandom();
