@@ -8,8 +8,9 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.io.PrintWriter;
 
 /*
+ * Just pointing out that this is assuming that a set only has one of a given part
  *	***Issues found***
-        check out what the deal is with manufactureSets()
+ *
  */
 public class RequestHandler implements Runnable {
 
@@ -36,11 +37,17 @@ public class RequestHandler implements Runnable {
 
         DBLock.writeLock().lock(); //the check and shipping, though it starts with a read, are both write locked to ensure set is not used between checking and shipping
             
+        /*
+         * figure out which sets we do not have in stock
+         */
         for (Integer set : requestedSetNames) { //check if sets are in stock
             if (requestedSetsMap.get(set) < DB.getSetQuantity(set))
                 setsNotAvailable.add(set);
         }
 
+        /*
+         * manufacture those sets so that we can complete the order
+         */
         if (!setsNotAvailable.isEmpty()) { //if some sets are not in stock, must determine which parts are needed
 
            // DBLock.writeLock().unlock(); //this will take a while, so we should only use a read-lock
@@ -83,6 +90,9 @@ public class RequestHandler implements Runnable {
 
             //potentially the parts number could decrease here, causing the part number to be insufficient to create a set
 
+            /*
+             * manufacture those parts
+             */
             if (!neededParts.isEmpty()) { //the map of needed parts is not empty, we must need to order some parts
 
                 DBLock.writeLock().unlock(); //this will take a while, should release locks
@@ -98,8 +108,16 @@ public class RequestHandler implements Runnable {
             //else, parts in stock
             // DBLock.writeLock().lock();
 
+            /*
+             * turn the parts into sets
+             */
             manufactureSets(requestedSetsMap);
         }
+
+        /*
+         * ship the sets
+         */
+
         //all sets are in stock
         shipSets(requestedSetsMap);
 
