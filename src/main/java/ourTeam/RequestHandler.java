@@ -147,14 +147,14 @@ public class RequestHandler implements Runnable {
         Set<Integer> setNames = sets.keySet();
         for(Integer set : setNames){
             decrementPartsOfSet(set, sets.get(set));
-            for(int i = 0; i < sets.get(set); i++) DB.incrementSet(set); //TODO have to change this to be done in the interface
+            DB.incrementSetBy(set, sets.get(set));
         }
     }
 
     private void decrementPartsOfSet(int set, int amount) {
         Set<String> parts = DB.getParts(set);
         for(String part : parts){
-            for(int i = 0; i < amount; i++) DB.decrementPart(part); //TODO change this to be done in the interface
+            DB.decrementPartBy(part, amount); 
         }
     }
 

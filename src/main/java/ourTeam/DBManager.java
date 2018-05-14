@@ -47,5 +47,9 @@ public interface DBManager
 
     public abstract void incrementSet(int set);
 
+    public abstract void incrementSetBy(int set, int amount);
+
     public abstract void decrementPart(String part);
+
+    public abstract void decrementPartBy(String part, int amount);
 }

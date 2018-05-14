@@ -40,7 +40,15 @@ public class DBMRandom implements DBManager {
     	return;
     }
 
+	public void incrementSetBy(int set, int amount) {
+		return;
+	}
+
     public void decrementPart(String part) {
     	return;
     }
+
+	public void decrementPartBy(String part, int amount) {
+		return;
+	}
 }

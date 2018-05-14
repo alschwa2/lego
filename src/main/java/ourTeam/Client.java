@@ -32,7 +32,7 @@ public class Client
 
 			System.out.println(fromServer.nextLine());
 
-			int tries = 1;
+			int tries = 30;
 			while (tries > 0) {
 				Request request = buildRequest();
 
@@ -40,11 +40,17 @@ public class Client
 
 				toServer.writeObject(request);
 
+				/*
 				if (fromServer.hasNextLine()) System.out.println(fromServer.nextLine());
 				else System.out.println("Connection to Server has been closed.");
+				*/
 
 				tries--;
 			}
+
+			while(fromServer.hasNextLine()) System.out.println(fromServer.nextLine());
+			System.out.println("Connection to Server has been closed.");
+
 		} catch(IOException e) {
 			System.err.println("Caught IOException: " + e.getMessage());
 			e.printStackTrace();

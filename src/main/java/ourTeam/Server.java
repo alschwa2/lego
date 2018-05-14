@@ -62,7 +62,7 @@ public class Server
 
 	/*
 	 * Create a thread that listens for client requests.
-	 * When a request is recieved, put it on the queue.
+	 * When a request is received, put it on the queue.
 	 * If there is no room on the queue, reject the request.
 	 */
 	private void listenForRequests() {
@@ -82,9 +82,9 @@ public class Server
 
 						/*
 						 * Here is the logic for what this thread should do with the message 
-						 * 	that it recieved from the client
+						 * 	that it received from the client
 						 */
-						System.out.println("Recieved request: " + request);
+						System.out.println("Received request: " + request);
 						//threadPool.execute(new Handler(request, toClient));
 						threadPool.execute(new RequestHandler(request, db, manufacturePartsThreadPool, toClient));
 						
