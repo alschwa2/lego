@@ -35,7 +35,7 @@ public class Client
 			int tries = 30;
 			while (tries > 0) {
 				Request request = buildRequest();
-				request.setName("" + tries);
+				request.setName("Request#" + tries);
 
 				System.out.println(request);
 
