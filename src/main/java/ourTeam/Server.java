@@ -38,6 +38,7 @@ public class Server
 	private ThreadPoolExecutor threadPool;
 	private ThreadPoolExecutor manufacturePartsThreadPool;
 	DBManager db;
+	DBLockHandler lockHandler;
 
 	public static void main(String[] args) {
 		Server s = new Server();
@@ -52,6 +53,7 @@ public class Server
 		this.manufacturePartsThreadPool.prestartAllCoreThreads();
 		
 		this.db = new DBMRandom();
+		lockHandler = new DBLockHandler();
 	}
 
 	/*
@@ -81,7 +83,7 @@ public class Server
 						System.out.println("Received request: " + request);
 						//threadPool.execute(new Handler(request, toClient));
 						try {
-							threadPool.execute(new RequestHandler(request, db, manufacturePartsThreadPool, toClient));
+							threadPool.execute(new RequestHandler(request, db, manufacturePartsThreadPool,lockHandler, toClient));
 						} catch (RejectedExecutionException e) {
 							toClient.println("Request Rejected: 25 requests outstanding" + request.toString());
 						}
