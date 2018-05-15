@@ -35,18 +35,18 @@ import java.util.LinkedList;
  */
 public interface DBManager
 {
-    public abstract int getPartCount(String part);
+    public abstract int getPartCount(String part, int set);
 
 	public abstract void decrementSet(int set, int amount);
 
 	public abstract Set<String> getParts(int set);
 
-    public abstract void incrementPart(String part, int amount);
+    public abstract void incrementPart(String part,int set, int amount);
 
     public abstract int getSetQuantity(int set);
 
     public abstract void incrementSet(int set, int amount);
 
-    public abstract void decrementPart(String part, int amount);
+    public abstract void decrementPart(String part, int set, int amount);
     ;
 }

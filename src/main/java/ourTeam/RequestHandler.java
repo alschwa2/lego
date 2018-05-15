@@ -21,14 +21,16 @@ public class RequestHandler implements Runnable {
     private ReentrantReadWriteLock DBLock = new ReentrantReadWriteLock();
     private ThreadPoolExecutor partConstructorThreadPool;
     private PrintWriter toClient;
+    private DBLockHandler DBLocks;
     private final int incrementPartsBy = 30;
 
 
-    public RequestHandler(Request request, DBManager DB, ThreadPoolExecutor threadPool, PrintWriter toClient) {
+    public RequestHandler(Request request, DBManager DB, ThreadPoolExecutor threadPool, DBLockHandler locks, PrintWriter toClient) {
         this.request = request;
         this.DB = DB;
         this.toClient = toClient;
         partConstructorThreadPool = threadPool;
+        DBLocks = locks;
     }
 
     @Override
@@ -37,16 +39,21 @@ public class RequestHandler implements Runnable {
         Set<Integer> requestedSetNames = requestedSetsMap.keySet(); // set of names of sets wanted by client
         HashMap<Integer, Integer> setsNotAvailable = new HashMap<>(); // list to contain sets that are not available
 
-        DBLock.writeLock().lock(); //the check and shipping, though it starts with a read, are both write locked to ensure set is not used between checking and shipping
+        //DBLock.writeLock().lock(); //the check and shipping, though it starts with a read, are both write locked to ensure set is not used between checking and shipping
             
         /*
          * figure out which sets we do not have in stock
          */
         for (Integer set : requestedSetNames) { //check if sets are in stock
-            int amountNeeeded = requestedSetsMap.get(set);
+
+
+            DBLocks.writeLockSet(set);
+
+
+            int amountNeeded = requestedSetsMap.get(set);
             int amountAvailable = DB.getSetQuantity(set);
-            if (amountNeeeded > amountAvailable)
-                setsNotAvailable.put(set, amountNeeeded - amountAvailable);
+            if (amountNeeded > amountAvailable)
+                setsNotAvailable.put(set, amountNeeded - amountAvailable);
         }
 
         /*
@@ -63,29 +70,41 @@ public class RequestHandler implements Runnable {
             /*
              * figure out how much we need of which parts are needed in total to complete the order
              */
-            Map<String, Integer> neededParts = new HashMap<String, Integer>();//part needed and amount needed
+            Map<String, SetPartAmountTuple> neededParts = new HashMap<String, SetPartAmountTuple>();//part needed and <set, amountOfPArtNeeded> tuple
             for (Integer set : setsNotAvailable.keySet()) { //for every set
+
+
+                DBLocks.readLockAllParts();
+
+
                 Set<String> setParts = DB.getParts(set);//get a set of its parts and put that set in a map under the set's name
 
                 for (String part : setParts) { //for every part of this set
+
+                    DBLocks.writeLockPart(part);
+
                     if (!neededParts.containsKey(part)) {
-                        neededParts.put(part, setsNotAvailable.get(set)); //need one copy of the part per copy of the set
+                        neededParts.put(part, new SetPartAmountTuple(set, setsNotAvailable.get(set))); //need one copy of the part per copy of the set
                     } else {
-                        neededParts.put(part, setsNotAvailable.get(set) + neededParts.get(part));
+                        neededParts.put(part, new SetPartAmountTuple(set, (setsNotAvailable.get(set) + neededParts.get(part).amount)));
                     }
                 }
+
+                DBLocks.readUnlockAllParts();
             }
 
             /*
              * Figure out how much of which parts we need to manufacture
              */
-            Map<String, Integer> partsToManufacture = new HashMap<String, Integer>();
+            Map<String, SetPartAmountTuple> partsToManufacture = new HashMap<String, SetPartAmountTuple>();
+            SetPartAmountTuple currentTuple;
             for (String part : neededParts.keySet()) {
-                actualPartQuantity = DB.getPartCount(part);
-                neededPartQuantity = neededParts.get(part);
+                currentTuple = neededParts.get(part);
+                actualPartQuantity = DB.getPartCount(part, currentTuple.set);
+                neededPartQuantity = currentTuple.amount;
 
                 if (actualPartQuantity < neededPartQuantity) {
-                    partsToManufacture.put(part, neededPartQuantity - actualPartQuantity);
+                    partsToManufacture.put(part, new SetPartAmountTuple(currentTuple.set, (neededPartQuantity - actualPartQuantity)));
                 }
             }
 
@@ -131,15 +150,24 @@ public class RequestHandler implements Runnable {
 
     }
 
+    class SetPartAmountTuple{
+        int set,amount;
+
+        SetPartAmountTuple(int set, int amount){
+            this.set = set;
+            this.amount = amount;
+        }
+    }
+
     /*
      * ***** METHODS DEALING WITH DATABASE STUFF *****
      */
 
-    private void incrementParts(Map<String, Integer> parts) {
+    private void incrementParts(Map<String, SetPartAmountTuple> parts) {
         Set<String> partNames = parts.keySet();
         for(String part : partNames){
-            int extraIncrement = incrementPartsBy * roundUp(parts.get(part), incrementPartsBy);
-            DB.incrementPart(part, incrementPartsBy + extraIncrement);
+            int extraIncrement = incrementPartsBy * roundUp(parts.get(part).amount, incrementPartsBy);
+            DB.incrementPart(part,parts.get(part).set, incrementPartsBy + extraIncrement);
         }
     }
 
@@ -154,7 +182,7 @@ public class RequestHandler implements Runnable {
     private void decrementPartsOfSet(int set, int amount) {
         Set<String> parts = DB.getParts(set);
         for(String part : parts){
-            DB.decrementPart(part, amount);
+            DB.decrementPart(part, set, amount);
         }
     }
 
@@ -169,13 +197,15 @@ public class RequestHandler implements Runnable {
      * ***** METHODS DEALING WITH OTHER PARTS OF THE LOGIC *****
      */
 
-    private void manufactureParts(Map<String, Integer> neededParts) {
-        List<Callable<Object>> partRunnables = new ArrayList<Callable<Object>>();
-        for(int amount : neededParts.values()){
-            partRunnables.add(Executors.callable(new partConstructor(roundUp(amount, incrementPartsBy) * 100)));
+    private void manufactureParts(Map<String, SetPartAmountTuple> neededParts) {
+        List<Callable<Object>> partRunables = new ArrayList<Callable<Object>>();
+        int amount = 0;
+        for(SetPartAmountTuple tuple : neededParts.values()){
+            amount = tuple.amount;
+            partRunables.add(Executors.callable(new partConstructor(roundUp(amount, incrementPartsBy) * 100)));
         }
         try {
-            partConstructorThreadPool.invokeAll(partRunnables);
+            partConstructorThreadPool.invokeAll(partRunables);
         } catch (InterruptedException e) {
             e.printStackTrace(); //TODO
         }
