@@ -1,12 +1,7 @@
 package ourTeam;
 
 import java.util.Set;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.Semaphore;
 
-import java.util.LinkedList;
 /*
  * This class is the interface between the Server and the Database.
 
@@ -33,20 +28,19 @@ import java.util.LinkedList;
 				order.
 			 When an order is filled, the server will include an order shipped message to the client
  */
-public interface DBManager
-{
-    public abstract int getPartCount(String part, int set);
 
-	public abstract void decrementSet(int set, int amount);
+interface DBManager {
+    Integer getPartCount(int set, String part);
 
-	public abstract Set<String> getParts(int set);
+    void decrementSet(int set, int amount);
 
-    public abstract void incrementPart(String part,int set, int amount);
+    Set<String> getParts(int set);
 
-    public abstract int getSetQuantity(int set);
+    void incrementPart(int set, String part, int amount);
 
-    public abstract void incrementSet(int set, int amount);
+    Integer getSetCount(int set);
 
-    public abstract void decrementPart(String part, int set, int amount);
-    ;
+    void incrementSet(int set, int amount);
+
+    void decrementPart(int set, String part, int amount);
 }
