@@ -1,28 +1,39 @@
 package ourTeam;
 
-import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class DBLockHandler {
 
-    private ConcurrentHashMap<String,ReentrantReadWriteLock> partLocks = new ConcurrentHashMap<String, ReentrantReadWriteLock>();
-    private ConcurrentHashMap<Integer,ReentrantReadWriteLock> setLocks = new ConcurrentHashMap<Integer, ReentrantReadWriteLock>();
-    private ReentrantReadWriteLock allSetsLock = new ReentrantReadWriteLock();
-    private ReentrantReadWriteLock allPartsLock = new ReentrantReadWriteLock();
-    private ReentrantReadWriteLock partMapLock = new ReentrantReadWriteLock();
-    private ReentrantReadWriteLock setMapLock = new ReentrantReadWriteLock();
+    private ConcurrentHashMap<String,ReentrantReadWriteLock> partLocks;
+    private ConcurrentHashMap<Integer,ReentrantReadWriteLock> setLocks;
+
+    private ReentrantReadWriteLock allSetsLock;
+    private ReentrantReadWriteLock allPartsLock;
+
+    private ReentrantReadWriteLock partMapLock;
+    private ReentrantReadWriteLock setMapLock;
 
     public DBLockHandler(){
+        this.partLocks = new ConcurrentHashMap<String, ReentrantReadWriteLock>();
+        this.setLocks = new ConcurrentHashMap<Integer, ReentrantReadWriteLock>();
 
+        this.allSetsLock = new ReentrantReadWriteLock();
+        this.allPartsLock = new ReentrantReadWriteLock();
+
+        this.partMapLock = new ReentrantReadWriteLock();
+        this.setMapLock = new ReentrantReadWriteLock();
     }
 
+    /*
+     * ***** PARTS *****
+     */
     public void readLockPart(String part){
         partMapLock.readLock().lock();
         allPartsLock.readLock().lock();
 
         if(!partLocks.containsKey(part))
-           createPart(part);
+           createPartLock(part);
 
 
         partLocks.get(part).readLock().lock();
@@ -46,7 +57,7 @@ public class DBLockHandler {
         allPartsLock.readLock().lock();
 
         if(!partLocks.containsKey(part))
-           createPart(part);
+           createPartLock(part);
 
         partLocks.get(part).writeLock().lock();
 
@@ -64,13 +75,17 @@ public class DBLockHandler {
         partMapLock.readLock().unlock();
     }
 
+    /*
+     * ***** SETS *****
+     */
+
     public void readLockSet(int set){
         setMapLock.readLock().lock();
         allSetsLock.readLock().lock();
 
 
         if(!setLocks.containsKey(set))
-            createSet(set);
+            createSetLock(set);
 
         setLocks.get(set).readLock().lock();
 
@@ -93,7 +108,7 @@ public class DBLockHandler {
         allSetsLock.readLock().lock();
 
         if(!setLocks.containsKey(set))
-            createSet(set);
+            createSetLock(set);
 
         setLocks.get(set).writeLock().lock();
 
@@ -101,73 +116,70 @@ public class DBLockHandler {
         setMapLock.readLock().unlock();
     }
 
-        public void writeUnlockSet(int set){
-            setMapLock.readLock().lock();
-            allSetsLock.readLock().lock();
+    public void writeUnlockSet(int set){
+        setMapLock.readLock().lock();
+        allSetsLock.readLock().lock();
 
-            setLocks.get(set).writeLock().unlock();
+        setLocks.get(set).writeLock().unlock();
 
-            allSetsLock.readLock().unlock();
-            setMapLock.readLock().unlock();
-        }
+        allSetsLock.readLock().unlock();
+        setMapLock.readLock().unlock();
+    }
 
-        public void readLockAllSets(){
-            allSetsLock.readLock().lock();
-        }
-        public void readUnlockAllSets(){
-            allSetsLock.readLock().unlock();
-        }
-        public void writeLockAllSets(){
+    /*
+     * ***** LOCK EVERYTHING *****
+     */
+
+    public void readLockAllSets(){
+        allSetsLock.readLock().lock();
+    }
+    public void readUnlockAllSets(){
+        allSetsLock.readLock().unlock();
+    }
+    public void writeLockAllSets(){
         allSetsLock.writeLock().lock();
-        }
-        public void writeUnlockAllSets(){
+    }
+    public void writeUnlockAllSets(){
         allSetsLock.writeLock().unlock();
-        }
+    }
 
-        public void readLockAllParts(){
-            allPartsLock.readLock().lock();
-        }
-        public void readUnlockAllParts(){
-            allPartsLock.readLock().unlock();
-        }
-        public void writeLockAllParts(){
-            allPartsLock.writeLock().lock();
-        }
-        public void writeUnlockAllParts(){
+    public void readLockAllParts(){
+        allPartsLock.readLock().lock();
+    }
+    public void readUnlockAllParts(){
+        allPartsLock.readLock().unlock();
+    }
+    public void writeLockAllParts(){
+        allPartsLock.writeLock().lock();
+    }
+    public void writeUnlockAllParts(){
         allPartsLock.writeLock().unlock();
-        }
+    }
 
+    /*
+     * ***** CREATING NEW LOCKS *****
+     */
 
-    private void createSet(int set) {
+    private void createSetLock(int set) {
         setMapLock.readLock().unlock();
         setMapLock.writeLock().lock();
 
-        createSetAux(set);
+
+        if(!setLocks.containsKey(set))
+            setLocks.put(set, new ReentrantReadWriteLock());
 
         setMapLock.readLock().lock();
         setMapLock.writeLock().unlock();
     }
 
-    private void createPart(String part) {
+    private void createPartLock(String part) {
         partMapLock.readLock().unlock();
         partMapLock.writeLock().lock();
 
-        createPartAux(part);
+        if(!partLocks.containsKey(part))
+            partLocks.put(part, new ReentrantReadWriteLock());
 
         partMapLock.readLock().lock();
         partMapLock.writeLock().unlock();
     }
-
-    private void createSetAux(int set){
-        if(!setLocks.containsKey(set))
-            setLocks.put(set, new ReentrantReadWriteLock());
-    }
-
-
-    private void createPartAux(String part) {
-        if(!partLocks.containsKey(part))
-            partLocks.put(part, new ReentrantReadWriteLock());
-    }
-
-
 }
