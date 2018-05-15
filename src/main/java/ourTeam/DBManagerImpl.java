@@ -111,7 +111,7 @@ public class DBManagerImpl implements DBManager{
             Object[] resultArray = client.getItem(request).getItem().values().toArray();
             if (resultArray[0] != null) {
                 AttributeValue firstResult = (AttributeValue) resultArray[0];
-                return Integer.parseInt(firstResult.getS());
+                return Integer.parseInt(firstResult.getN());
             } else {
                 System.out.format("No set found with the ID %s\n", set);
             }

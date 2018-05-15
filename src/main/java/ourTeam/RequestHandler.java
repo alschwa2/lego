@@ -1,10 +1,7 @@
 package ourTeam;
 
 import java.util.*;
-import java.util.concurrent.Callable;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import java.io.PrintWriter;
@@ -25,6 +22,19 @@ public class RequestHandler implements Runnable {
     private final int incrementPartsBy = 30;
 
 
+
+    public static void main(String args[]){
+        Request testReq = new Request();
+        testReq.addSet(1, 1);
+        DBManager testDB = new DBManagerImpl();
+        ThreadPoolExecutor testPool = new ThreadPoolExecutor(100, 100, 1, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(), new ThreadPoolExecutor.DiscardPolicy());
+        testPool.prestartAllCoreThreads();
+        DBLockHandler testLocks = new DBLockHandler();
+        PrintWriter testPrint = null;
+        RequestHandler testHandler = new RequestHandler(testReq,testDB,testPool,testLocks,testPrint);
+        testHandler.run();
+
+    }
     public RequestHandler(Request request, DBManager DB, ThreadPoolExecutor threadPool, DBLockHandler locks, PrintWriter toClient) {
         this.request = request;
         this.DB = DB;
@@ -224,7 +234,8 @@ public class RequestHandler implements Runnable {
 
 
     private void informClientSuccess(){
-        toClient.println("Your order (" + request.getName() + ") has shipped.");
+        //toClient.println("Your order (" + request.getName() + ") has shipped.");
+        System.out.println("Your order (" + request.getName() + ") has shipped.");
     }
 
     //got this from here: https://stackoverflow.com/questions/7446710/how-to-round-up-integer-division-and-have-int-result-in-java
