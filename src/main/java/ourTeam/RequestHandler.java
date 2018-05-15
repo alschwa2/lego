@@ -52,7 +52,7 @@ public class RequestHandler implements Runnable {
 
 
             int amountNeeded = requestedSetsMap.get(set);
-            int amountAvailable = DB.getSetQuantity(set);
+            int amountAvailable = DB.getSetCount(set);
             if (amountNeeded > amountAvailable)
                 setsNotAvailable.put(set, amountNeeded - amountAvailable);
             else
@@ -96,7 +96,7 @@ public class RequestHandler implements Runnable {
             SetPartAmountTuple currentTuple;
             for (String part : neededParts.keySet()) {
                 currentTuple = neededParts.get(part);
-                actualPartQuantity = DB.getPartCount(part, currentTuple.set);
+                actualPartQuantity = DB.getPartCount(currentTuple.set, part);
                 neededPartQuantity = currentTuple.amount;
 
                 if (actualPartQuantity < neededPartQuantity) {
@@ -150,7 +150,7 @@ public class RequestHandler implements Runnable {
         Set<String> partNames = parts.keySet();
         for(String part : partNames){
             int extraIncrement = incrementPartsBy * roundUp(parts.get(part).amount, incrementPartsBy);
-            DB.incrementPart(part,parts.get(part).set, incrementPartsBy + extraIncrement);
+            DB.incrementPart(parts.get(part).set, part, incrementPartsBy + extraIncrement);
         }
     }
 
@@ -165,7 +165,7 @@ public class RequestHandler implements Runnable {
     private void decrementPartsOfSet(int set, int amount) {
         Set<String> parts = DB.getParts(set);
         for(String part : parts){
-            DB.decrementPart(part, set, amount);
+            DB.decrementPart(set, part, amount);
         }
     }
 
