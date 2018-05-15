@@ -27,7 +27,10 @@ public class DBManagerImpl implements DBManager{
             Object[] resultArray = client.getItem(request).getItem().values().toArray();
             if (resultArray[0] != null) {
                 AttributeValue firstResult = (AttributeValue) resultArray[0];
-                return Integer.parseInt(firstResult.getN());
+                String toReturn = firstResult.getS();
+                if(toReturn == null)
+                    toReturn = firstResult.getN();
+                return Integer.parseInt(toReturn);
             } else {
                 System.out.format("No part found with the ID %s\n", part);
             }
@@ -111,7 +114,10 @@ public class DBManagerImpl implements DBManager{
             Object[] resultArray = client.getItem(request).getItem().values().toArray();
             if (resultArray[0] != null) {
                 AttributeValue firstResult = (AttributeValue) resultArray[0];
-                return Integer.parseInt(firstResult.getN());
+                String toReturn = firstResult.getS();
+                if(toReturn == null)
+                    toReturn = firstResult.getN();
+                return Integer.parseInt(toReturn);
             } else {
                 System.out.format("No set found with the ID %s\n", set);
             }

@@ -131,28 +131,36 @@ public class DBLockHandler {
      */
 
     public void readLockAllSets(){
+
         allSetsLock.readLock().lock();
     }
-    public void readUnlockAllSets(){
+    public void readUnlockAllSets()
+    {
         allSetsLock.readLock().unlock();
     }
     public void writeLockAllSets(){
+
         allSetsLock.writeLock().lock();
     }
-    public void writeUnlockAllSets(){
+    public void writeUnlockAllSets()
+    {
         allSetsLock.writeLock().unlock();
     }
 
     public void readLockAllParts(){
+
         allPartsLock.readLock().lock();
     }
     public void readUnlockAllParts(){
+
         allPartsLock.readLock().unlock();
     }
     public void writeLockAllParts(){
+
         allPartsLock.writeLock().lock();
     }
-    public void writeUnlockAllParts(){
+    public void writeUnlockAllParts()
+    {
         allPartsLock.writeLock().unlock();
     }
 

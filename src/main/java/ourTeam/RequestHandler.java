@@ -25,7 +25,9 @@ public class RequestHandler implements Runnable {
 
     public static void main(String args[]){
         Request testReq = new Request();
-        testReq.addSet(1, 1);
+        testReq.addSet(1, 5);
+        testReq.addSet(2,3);
+        testReq.addSet(3,2);
         DBManager testDB = new DBManagerImpl();
         ThreadPoolExecutor testPool = new ThreadPoolExecutor(100, 100, 1, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(), new ThreadPoolExecutor.DiscardPolicy());
         testPool.prestartAllCoreThreads();
@@ -55,22 +57,25 @@ public class RequestHandler implements Runnable {
         /*
          * figure out which sets we do not have in stock
          */
+        DBLocks.writeLockAllSets();
         for (Integer set : requestedSetNames) { //check if sets are in stock
-
-
-            DBLocks.writeLockSet(set);
 
 
             int amountNeeded = requestedSetsMap.get(set);
             int amountAvailable = DB.getSetCount(set);
-            if (amountNeeded > amountAvailable)
+            if (amountNeeded > amountAvailable) {
                 setsNotAvailable.put(set, amountNeeded - amountAvailable);
+                if(amountAvailable > 0)
+                    availableSets.put(set, amountAvailable);
+            }
             else
                 availableSets.put(set, amountNeeded);
         }
 
         reserveSets(availableSets);//decrement the available sets in the DB so that they can be reserved for this customer and unlocked for other thread's usage.
 
+
+        DBLocks.writeUnlockAllSets();
         /*
          * manufacture those sets so that we can complete the order
          */
@@ -99,10 +104,15 @@ public class RequestHandler implements Runnable {
                     }
                 }
             }
+
+            DBLocks.readUnlockAllParts();
+            DBLocks.writeLockAllParts();//will actually be decrementing parts now
+
             /*
              * Figure out how much of which parts we need to manufacture
              */
             Map<String, SetPartAmountTuple> partsToManufacture = new HashMap<String, SetPartAmountTuple>();
+            Map<String, SetPartAmountTuple> partsToReserve = new HashMap<String, SetPartAmountTuple>();
             SetPartAmountTuple currentTuple;
             for (String part : neededParts.keySet()) {
                 currentTuple = neededParts.get(part);
@@ -111,10 +121,15 @@ public class RequestHandler implements Runnable {
 
                 if (actualPartQuantity < neededPartQuantity) {
                     partsToManufacture.put(part, new SetPartAmountTuple(currentTuple.set, (neededPartQuantity - actualPartQuantity)));
+                    if(actualPartQuantity > 0)
+                        partsToReserve.put(part, new SetPartAmountTuple(currentTuple.set, actualPartQuantity));
                 }
+                else
+                    partsToReserve.put(part, new SetPartAmountTuple(currentTuple.set, (neededPartQuantity)));
             }
 
-            DBLocks.readUnlockAllParts();
+            reserveParts(partsToReserve);
+            DBLocks.writeUnlockAllParts();
 
             //potentially the parts number could decrease here, causing the part number to be insufficient to create a set, but shouldnt be too much of issue
 
@@ -123,17 +138,30 @@ public class RequestHandler implements Runnable {
              */
             if (!partsToManufacture.isEmpty()) { //the map of needed parts is not empty, we must need to order some parts
                 manufactureParts(partsToManufacture); //"manufacture" the parts (start thread with 100 millisecond timer for each parts, wait for them to finish
-                incrementParts(partsToManufacture); //increment the amount of parts in the actual database
 
+
+                DBLocks.writeLockAllParts();
+
+
+                incrementParts(partsToManufacture); //increment the amount of parts in the actual database
+                decrementParts(partsToManufacture);
+
+
+                DBLocks.writeUnlockAllParts();
             }
 
             //else, parts in stock
             /*
              * turn the parts into sets
              */
-            manufactureSets(setsNotAvailable);
+            DBLocks.writeLockAllSets();
 
+
+            manufactureSets(setsNotAvailable);
             shipSets(setsNotAvailable);
+
+
+            DBLocks.writeUnlockAllSets();
         }
 
 
@@ -164,10 +192,27 @@ public class RequestHandler implements Runnable {
         }
     }
 
+    /**
+     * reserves parts to be used in a manufacture process of sets later on. Since reserving here is the same as decrementing, just call decrementParts
+     * @param partsToReserve parts to decrement in DB
+     */
+    private void reserveParts(Map<String,SetPartAmountTuple> partsToReserve) {
+        decrementParts(partsToReserve);
+    }
+
+    private void decrementParts(Map<String, SetPartAmountTuple> parts) {
+        Set<String> partNames = parts.keySet();
+        SetPartAmountTuple tuple;
+        for(String part : partNames){
+            tuple = parts.get(part);
+            DB.decrementPart(tuple.set, part, tuple.amount);
+        }
+    }
+
     private void manufactureSets(HashMap<Integer, Integer> sets) {
         Set<Integer> setNames = sets.keySet();
         for(Integer set : setNames){
-            decrementPartsOfSet(set, sets.get(set));
+            //decrementPartsOfSet(set, sets.get(set));
             DB.incrementSet(set, sets.get(set));
         }
     }
@@ -191,8 +236,6 @@ public class RequestHandler implements Runnable {
         Set<Integer> requestedSets = sets.keySet();
         for(Integer set : requestedSets){
             DB.decrementSet(set, sets.get(set));
-
-            DBLocks.writeUnlockSet(set);
 
         }
     }
