@@ -61,7 +61,7 @@ public class Client
 	private static Request buildRequest() {
 		Request request = new Request();
 
-		int numSets = random.nextInt(100) + 1;
+		int numSets = 5;
 		while (numSets > 0) {
 			request.addSet(random.nextInt(1000));
 			numSets--;
