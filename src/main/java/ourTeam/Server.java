@@ -52,7 +52,7 @@ public class Server
 		this.manufacturePartsThreadPool = new ThreadPoolExecutor(100, 100, 1, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(), new ThreadPoolExecutor.DiscardPolicy());
 		this.manufacturePartsThreadPool.prestartAllCoreThreads();
 		
-		this.db = new DBMRandom();
+		this.db = new DBManagerImpl();
 		lockHandler = new DBLockHandler();
 	}
 

@@ -2,20 +2,15 @@ package ourTeam;
 
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import java.io.PrintWriter;
 
-/*
- * Just pointing out that this is assuming that a set only has one of a given part
- *	***Issues found***
- *
- */
+
 public class RequestHandler implements Runnable {
 
     private Request request;
     private DBManager DB;
-   // private ReentrantReadWriteLock DBLock = new ReentrantReadWriteLock();
+
     private ThreadPoolExecutor partConstructorThreadPool;
     private PrintWriter toClient;
     private DBLockHandler DBLocks;
@@ -51,8 +46,6 @@ public class RequestHandler implements Runnable {
         Set<Integer> requestedSetNames = requestedSetsMap.keySet(); // set of names of sets wanted by client
         HashMap<Integer, Integer> setsNotAvailable = new HashMap<>(); // list to contain sets that are not available
         HashMap<Integer, Integer>  availableSets = new HashMap<Integer, Integer>();
-
-        //DBLock.writeLock().lock(); //the check and shipping, though it starts with a read, are both write locked to ensure set is not used between checking and shipping
             
         /*
          * figure out which sets we do not have in stock
@@ -76,12 +69,16 @@ public class RequestHandler implements Runnable {
 
 
         DBLocks.writeUnlockAllSets();
+
+
         /*
          * manufacture those sets so that we can complete the order
          */
 
 
         if (!setsNotAvailable.isEmpty()) { //if some sets are not in stock, must determine which parts are needed
+
+            alertClientBackordered();
 
             int actualPartQuantity, neededPartQuantity, differenceNeeded = 0; // placeholders for later
             /*
@@ -94,9 +91,6 @@ public class RequestHandler implements Runnable {
             for (Integer set : setsNotAvailable.keySet()) { //for every set
                 Set<String> setParts = DB.getParts(set);//get a set of its parts and put that set in a map under the set's name
                 for (String part : setParts) { //for every part of this set
-
-                   // DBLocks.writeLockPart(part); maybe add this if we find that our parts are being used before we can create a set
-
                     if (!neededParts.containsKey(part)) {
                         neededParts.put(part, new SetPartAmountTuple(set, setsNotAvailable.get(set))); //need one copy of the part per copy of the set
                     } else {
@@ -130,8 +124,6 @@ public class RequestHandler implements Runnable {
 
             reserveParts(partsToReserve);
             DBLocks.writeUnlockAllParts();
-
-            //potentially the parts number could decrease here, causing the part number to be insufficient to create a set, but shouldnt be too much of issue
 
             /*
              * manufacture those parts
@@ -170,6 +162,14 @@ public class RequestHandler implements Runnable {
 
     }
 
+    private void alertClientBackordered() {
+        if (toClient == null) {
+            System.out.println("Your order (" + request.getName() + ") is backordered. Will ship soon!");
+            return;
+        }
+        toClient.println("Your order (" + request.getName() + ") is backordered. Will ship soon!");
+    }
+
 
     class SetPartAmountTuple{
         int set,amount;
@@ -187,8 +187,8 @@ public class RequestHandler implements Runnable {
     private void incrementParts(Map<String, SetPartAmountTuple> parts) {
         Set<String> partNames = parts.keySet();
         for(String part : partNames){
-            int extraIncrement = incrementPartsBy * roundUp(parts.get(part).amount, incrementPartsBy);
-            DB.incrementPart(parts.get(part).set, part, incrementPartsBy + extraIncrement);
+            int increment = incrementPartsBy * roundUp(parts.get(part).amount, incrementPartsBy);
+            DB.incrementPart(parts.get(part).set, part, increment);
         }
     }
 
@@ -205,15 +205,14 @@ public class RequestHandler implements Runnable {
         SetPartAmountTuple tuple;
         for(String part : partNames){
             tuple = parts.get(part);
-            DB.decrementPart(tuple.set, part, tuple.amount);
+            DB.decrementPart(tuple.set, part, tuple.amount * 2);
         }
     }
 
     private void manufactureSets(HashMap<Integer, Integer> sets) {
         Set<Integer> setNames = sets.keySet();
         for(Integer set : setNames){
-            //decrementPartsOfSet(set, sets.get(set));
-            DB.incrementSet(set, sets.get(set));
+            DB.incrementSet(set, sets.get(set) + 1);
         }
     }
 

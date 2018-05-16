@@ -7,6 +7,7 @@ public class TestClass{
 
     @Test
     public void testMethod() {
+
         assertThat("a", containsString("Hello"));
     }
 
