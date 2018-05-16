@@ -42,7 +42,9 @@ public class Server
 
 	public static void main(String[] args) {
 		Server s = new Server();
-		s.listenForRequests();
+		while (true) {
+			s.listenForRequests();
+		}
 	}
 
 	public Server() {
@@ -69,7 +71,7 @@ public class Server
 
 				ObjectInputStream fromClient = new ObjectInputStream(incoming.getInputStream());
 				PrintWriter toClient = new PrintWriter(new OutputStreamWriter(incoming.getOutputStream(), "UTF-8"), true);
-
+				toClient.println("Connected to Server");
 				toClient.println("Hello! Enter BYE to exit.");
 
 				while (true) {
