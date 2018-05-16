@@ -21,32 +21,71 @@ import java.io.ObjectOutputStream;
 
 public class Client
 {
-	private static Random random;
+	private static Random random = new Random();
 
 	public static void main(String[] args) {
-		random = new Random();
+		request50ms();
+	}
 
+	private static void request50ms() {
 		try(Socket socket = new Socket("localhost", 8189)) {
 			Scanner fromServer = new Scanner(socket.getInputStream(), "UTF-8");
 			ObjectOutputStream toServer = new ObjectOutputStream(socket.getOutputStream());
 
-			System.out.println(fromServer.nextLine());
+			Thread requestThread = new Thread(()->{
+				for (int requestNum = 0; true; requestNum++) {
+					try {
+						Thread.sleep(50);
 
-			int tries = 30;
-			while (tries > 0) {
+						Request request = buildRequest();
+						request.setName("#" + requestNum);
+						System.out.println("Request to send: " + request);
+
+						toServer.writeObject(request);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+						return;
+					} catch(IOException e) {
+						e.printStackTrace();
+						return;
+					}
+				}
+			});
+
+			Thread readThread = new Thread(()->{
+				while (fromServer.hasNextLine()) System.out.println(fromServer.nextLine());
+			});
+
+			requestThread.start();
+			readThread.start();
+
+			requestThread.join();
+			readThread.join();
+		} catch(IOException e) {
+			System.err.println("Caught IOException: " + e.getMessage());
+			e.printStackTrace();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+
+	}
+
+	private static void requestRandom(int numRequests) {
+		try(Socket socket = new Socket("localhost", 8189)) {
+			Scanner fromServer = new Scanner(socket.getInputStream(), "UTF-8");
+			ObjectOutputStream toServer = new ObjectOutputStream(socket.getOutputStream());
+
+			if (fromServer.hasNextLine()) System.out.println(fromServer.nextLine());
+
+			for (int requestNum = 0; requestNum < numRequests; requestNum++) {
 				Request request = buildRequest();
-				request.setName("Request#" + tries);
+				request.setName("Request#" + requestNum);
 
-				System.out.println(request);
+				System.out.println("Request to send: " + request);
 
 				toServer.writeObject(request);
 
-				/*
-				if (fromServer.hasNextLine()) System.out.println(fromServer.nextLine());
-				else System.out.println("Connection to Server has been closed.");
-				*/
-
-				tries--;
+				requestNum++;
 			}
 
 			while(fromServer.hasNextLine()) System.out.println(fromServer.nextLine());
@@ -56,6 +95,7 @@ public class Client
 			System.err.println("Caught IOException: " + e.getMessage());
 			e.printStackTrace();
 		}
+
 	}
 
 	private static Request buildRequest() {
