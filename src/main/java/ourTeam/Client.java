@@ -9,14 +9,7 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 
 /*
- *
-	 The client randomly picks a lego set to order and places a new order with the application server every 50 milliseconds.
-	 Many request-response connections can be created between client and server, but the client can not have more
-	than 25 orders at a time that have not yet shipped.
-	 The application server and the data store you build will communicate with each other via serialized Java objects being
-	sent over TCP connections. This can be done either using java.net.Socket and java.net.ServerSocket or using Netty.
-	 The client and application server can communicate either via TCP or via HTTP. You may use Netty or Jetty or
-	HttpURLConnection.
+ * Client requets sets from the server
  */
 
 public class Client
