@@ -197,7 +197,7 @@ public class TestClass{
      * When an order is filled, the server will include an “order shipped” message to the client.
     */
 
-    @Test
+    //@Test
     public void testNotEnoughParts() {
         DBManagerImpl db = new DBManagerImpl();
         HashMap<String,Integer> oldPartQuantities = new HashMap<>();
