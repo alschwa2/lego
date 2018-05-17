@@ -255,24 +255,6 @@ public class TestClass{
 
 
     }
-    /*
-     * The client randomly picks a lego set to order
-     * and places a new order with the application server every 50 milliseconds.
-     */
-    @Test
-    public void testPlaceOrder() {
-
-    }
-
-    /*
-     * Many “request-response” connections can be created between client and server, but the client can not have more
-	 * than 25 orders at a time that have not yet shipped.
-     */
-
-    @Test
-    public void testRequestResponse() {
-
-    }
 
 
 }
