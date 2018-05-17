@@ -8,6 +8,7 @@ import ourTeam.Server;
 import sun.nio.ch.ThreadPool;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -162,12 +163,12 @@ public class TestClass{
         requestClient(tp, c, r);
         tp.shutdown();
         try {
-            Thread.sleep(1000);
+            Thread.sleep(5000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
         for(String part : parts){
-            Assert.assertEquals(db.getPartCount(setToOrder,part),oldPartQuantities.get(part));
+            Assert.assertTrue(db.getPartCount(setToOrder,part) == (oldPartQuantities.get(part) - 2));
         }
 
 
@@ -186,15 +187,67 @@ public class TestClass{
 
     @Test
     public void testNotEnoughParts() {
-        
+        DBManagerImpl db = new DBManagerImpl();
+        HashMap<String,Integer> oldPartQuantities = new HashMap<>();
+        int setToOrder = -1, setQuantity = 0, partAmount = 0;
+        boolean setHasParts = true;
+        Set<String> parts = db.getParts(1);
+        Set<String> NAParts = new HashSet<>();
+        for(int i=1; i<2000; i++){
+            setHasParts = true;
+            setQuantity = db.getSetCount(i);
+            if (setQuantity == 0) {
+                parts = db.getParts(i);
+                for (String part : parts){
+                    if(oldPartQuantities.containsKey(part))
+                        partAmount = oldPartQuantities.get(part);
+                    else {
+                        partAmount = db.getPartCount(i, part);
+                        oldPartQuantities.put(part, partAmount);
+                    }
+                    if(db.getPartCount(i, part) <= 0) {
+                        NAParts.add(part);
+                        setHasParts = false;
+                    }
+                }
+                if(!setHasParts) {
+                    setToOrder = i;
+                    i = 2000;
+                }
+            }
+        }
+
+        ThreadPoolExecutor tp = getNewThreadPool();
+        Server s = new Server();
+        Client c = new Client();
+        Request r = new Request();
+        r.addSet(setToOrder);
+        initializeServer(tp, s);
+        try {
+            Thread.sleep(100);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        requestClient(tp, c, r);
+        tp.shutdown();
+        try {
+            Thread.sleep(5000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        for(String part : NAParts){
+            Assert.assertTrue(db.getPartCount(setToOrder,part) == 28);
+        }
+
+
     }
-    /* 
-     * The client randomly picks a lego set to order 
+    /*
+     * The client randomly picks a lego set to order
      * and places a new order with the application server every 50 milliseconds.
      */
     @Test
     public void testPlaceOrder() {
-        
+
     }
 
     /*
@@ -204,7 +257,7 @@ public class TestClass{
 
     @Test
     public void testRequestResponse() {
-        
+
     }
 
 
