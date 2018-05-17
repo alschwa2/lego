@@ -44,23 +44,24 @@ public class Server
 		//create ServerSocket
 		try (ServerSocket ssc = new ServerSocket(8189)) {
 			//create Socket
-			for (int sessionNum = 0; true; sessionNum++) {
-				try {
-					Socket incoming = ssc.accept();
-					System.out.println("New Connection: Session#" + sessionNum);
-					Thread connectionManager = new Thread(new ConnectionManager(incoming, sessionNum));
-					connectionManager.setDaemon(true);
-					connectionManager.start();
-				} catch (IOException e) {
-					System.err.println("Caught exception while creating socket connection to client.");
-					System.err.println(e.getMessage());
-					e.printStackTrace();
+
+			try {
+				Socket incoming = ssc.accept();
+				for (int sessionNum = 0; incoming != null; sessionNum++) {
+						System.out.println("New Connection: Session#" + sessionNum);
+						Thread connectionManager = new Thread(new ConnectionManager(incoming, sessionNum));
+						connectionManager.setDaemon(true);
+						connectionManager.start();
+						incoming = ssc.accept();
+
 				}
-			}
 		} catch (IOException e) {
-			System.err.println("Caught error while creating ServerSocket");
+			System.err.println("Caught exception while creating socket connection to client.");
 			System.err.println(e.getMessage());
 			e.printStackTrace();
+		}
+		} catch (IOException e) {
+			System.out.println("Server already running");
 		}
 	}
 
@@ -76,10 +77,12 @@ public class Server
 	class ConnectionManager implements Runnable {
 		Socket socket;
 		int sessionNum;
+		Server parent;
 
 		ConnectionManager(Socket socket, int sessionNum) {
 			this.socket = socket;
 			this.sessionNum = sessionNum;
+
 		}
 
 		@Override
@@ -89,35 +92,39 @@ public class Server
 				PrintWriter toClient = new PrintWriter(new OutputStreamWriter(this.socket.getOutputStream(), "UTF-8"), true);
 
 				toClient.println("Server: Connected, Session #" + this.sessionNum);
+				boolean endCondition = true;
 
-				while (true) {
-					try {
-						Request request = (Request) fromClient.readObject();
+				try {
+					Request request = (Request) fromClient.readObject();
+					while (request != null) {
 
-						System.out.println("Received request: " + request);
+							System.out.println("Received request: " + request);
+							if(request.getName().equals("quit"))
+								break;
+							try {
+								threadPool.execute(new RequestHandler(request, db, manufacturePartsThreadPool, lockHandler, toClient));
+							}catch (RejectedExecutionException e) {
+								toClient.println("Request Rejected: 25 requests outstanding" + request.toString());
+							}
+							request = (Request) fromClient.readObject();
 
-						try {
-							threadPool.execute(new RequestHandler(request, db, manufacturePartsThreadPool, lockHandler, toClient));
-						}catch (RejectedExecutionException e) {
-							toClient.println("Request Rejected: 25 requests outstanding" + request.toString());
-						}
-					}  catch (EOFException e) {
-						break;
-					} catch (ClassNotFoundException e) {
-						System.out.println("Caught ClassNotFoundException: " + e.getMessage());
-						toClient.println("Error: Could not find class.");
-						break;
 					}
+				}  catch (EOFException e) {
+
+				} catch (ClassNotFoundException e) {
+					System.out.println("Caught ClassNotFoundException: " + e.getMessage());
+					toClient.println("Error: Could not find class.");
+
 				}
 			} catch (SocketException e) {
 				System.out.println("Session#" + sessionNum + " disconnected");
 			} catch (IOException e) {
-				e.printStackTrace(); //TODO
+				e.printStackTrace();
 			} finally {
 				try {
 					this.socket.close();
 				} catch (IOException e) {
-					e.printStackTrace(); //TODO
+					e.printStackTrace();
 				}
 			}
 		}

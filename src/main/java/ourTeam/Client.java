@@ -17,11 +17,14 @@ public class Client
 	private static Random random = new Random();
 
 	public static void main(String[] args) {
-		request50ms();
+		if(args.length>0)
+			request50ms(args[0]);
+		else
+			request50ms("52.202.31.216");
 	}
 
-	private static void request50ms() {
-		try(Socket socket = new Socket("localhost", 8189)) {
+	private static void request50ms(String host) {
+		try(Socket socket = new Socket(host, 8189)) {
 			Scanner fromServer = new Scanner(socket.getInputStream(), "UTF-8");
 			ObjectOutputStream toServer = new ObjectOutputStream(socket.getOutputStream());
 
@@ -36,7 +39,7 @@ public class Client
 
 						toServer.writeObject(request);
 					} catch (InterruptedException e) {
-						e.printStackTrace();
+						System.out.println("Client Forced Shutdown");
 						return;
 					} catch(IOException e) {
 						e.printStackTrace();
@@ -61,13 +64,13 @@ public class Client
 			System.err.println("Caught IOException: " + e.getMessage());
 			e.printStackTrace();
 		} catch (InterruptedException e) {
-			e.printStackTrace();
+			System.out.println("Client Forced Shutdown");
 		}
 
 	}
 
-	public static void request(Request request){
-		try(Socket socket = new Socket("localhost", 8189)) {
+	public static void request(Request request, String host){
+		try(Socket socket = new Socket(host, 8189)) {
 			Scanner fromServer = new Scanner(socket.getInputStream(), "UTF-8");
 			ObjectOutputStream toServer = new ObjectOutputStream(socket.getOutputStream());
 
@@ -102,7 +105,7 @@ public class Client
 			System.err.println("Caught IOException: " + e.getMessage());
 			e.printStackTrace();
 		} catch (InterruptedException e) {
-			e.printStackTrace();
+			System.out.println("Client Forced Shutdown");
 		}
 
 	}

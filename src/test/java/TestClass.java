@@ -20,6 +20,8 @@ import static org.hamcrest.CoreMatchers.containsString;
 public class TestClass{
 
 
+    private static final String DBHost = "localhost";
+
     private ThreadPoolExecutor threadPool;
 
     public class ServerRunner implements Runnable {
@@ -40,21 +42,24 @@ public class TestClass{
 
         Client c;
         Request r;
-        public ClientRequestRunner(Client client, Request request){
+        String h;
+
+        public ClientRequestRunner(Client client, Request request, String host){
             c = client;
             r = request;
+            h = host;
         }
         @Override
         public void run() {
-            c.request(r);
+            c.request(r, h);
         }
     }
     private void initializeServer(ThreadPoolExecutor tp, Server s){
         tp.execute(new ServerRunner(s));
     }
 
-    private void requestClient(ThreadPoolExecutor tp, Client c, Request r){
-        tp.execute(new ClientRequestRunner(c, r));
+    private void requestClient(ThreadPoolExecutor tp, Client c, Request r, String host){
+        tp.execute(new ClientRequestRunner(c, r, host));
     }
 
     private ThreadPoolExecutor getNewThreadPool(){
@@ -98,13 +103,16 @@ public class TestClass{
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        requestClient(tp, c, r);
-        tp.shutdown();
+        requestClient(tp, c, r, DBHost);
+        r = new Request();
+        r.setName("quit");
+        requestClient(tp, c, r, DBHost);
         try {
-            Thread.sleep(1000);
+            Thread.sleep(5000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+        tp.shutdownNow();
         Assert.assertTrue(db.getSetCount(setToOrder) == (setQuantity - 1));
 
 
@@ -160,13 +168,16 @@ public class TestClass{
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        requestClient(tp, c, r);
-        tp.shutdown();
+        requestClient(tp, c, r, DBHost);
+        r = new Request();
+        r.setName("quit");
+        requestClient(tp, c, r, DBHost);
         try {
             Thread.sleep(5000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+        tp.shutdownNow();
         for(String part : parts){
             Assert.assertTrue(db.getPartCount(setToOrder,part) == (oldPartQuantities.get(part) - 2));
         }
@@ -228,13 +239,16 @@ public class TestClass{
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        requestClient(tp, c, r);
-        tp.shutdown();
+        requestClient(tp, c, r, DBHost);
+        r = new Request();
+        r.setName("quit");
+        requestClient(tp, c, r, DBHost);
         try {
             Thread.sleep(5000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+        tp.shutdownNow();
         for(String part : NAParts){
             Assert.assertTrue(db.getPartCount(setToOrder,part) == 28);
         }
