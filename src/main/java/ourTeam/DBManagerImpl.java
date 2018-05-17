@@ -12,7 +12,7 @@ import java.util.*;
 public class DBManagerImpl implements DBManager{
     AmazonDynamoDB client;
 
-    DBManagerImpl() {
+    public DBManagerImpl() {
         client = AmazonDynamoDBClientBuilder.standard().withRegion(Regions.US_EAST_1).build();
     }
 

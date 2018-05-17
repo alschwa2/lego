@@ -63,7 +63,45 @@ public class Client
 
 	}
 
-	private static void requestRandom(int numRequests) {
+	public static void request(Request request){
+		try(Socket socket = new Socket("localhost", 8189)) {
+			Scanner fromServer = new Scanner(socket.getInputStream(), "UTF-8");
+			ObjectOutputStream toServer = new ObjectOutputStream(socket.getOutputStream());
+
+			Thread requestThread = new Thread(()->{
+
+					try {
+
+						request.setName("#1");
+						System.out.println("Request to send: " + request);
+
+						toServer.writeObject(request);
+					} catch(IOException e) {
+						e.printStackTrace();
+						return;
+					}
+
+			});
+
+			Thread readThread = new Thread(()->{
+				while (fromServer.hasNextLine()) System.out.println(fromServer.nextLine());
+			});
+
+			requestThread.start();
+			readThread.start();
+
+			requestThread.join();
+			readThread.join();
+		} catch(IOException e) {
+			System.err.println("Caught IOException: " + e.getMessage());
+			e.printStackTrace();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+
+	}
+
+	public static void requestRandom(int numRequests) {
 		try(Socket socket = new Socket("localhost", 8189)) {
 			Scanner fromServer = new Scanner(socket.getInputStream(), "UTF-8");
 			ObjectOutputStream toServer = new ObjectOutputStream(socket.getOutputStream());

@@ -1,15 +1,62 @@
-package java;
+
+import org.junit.Assert;
 import org.junit.Test;
+import ourTeam.Client;
+import ourTeam.DBManagerImpl;
+import ourTeam.Request;
+import ourTeam.Server;
+import sun.nio.ch.ThreadPool;
+
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+
 import static org.junit.Assert.*;
 import static org.hamcrest.CoreMatchers.containsString;
 
 public class TestClass{
 
-    @Test
-    public void testMethod() {
-        assertThat("a", containsString("Hello"));
+
+    private ThreadPoolExecutor threadPool;
+
+    public class ServerRunner implements Runnable {
+
+        Server s;
+
+        public ServerRunner(Server server){
+            s = server;
+        }
+
+        @Override
+        public void run() {
+            s.main(null);
+        }
     }
 
+    public class ClientRequestRunner implements Runnable{
+
+        Client c;
+        Request r;
+        public ClientRequestRunner(Client client, Request request){
+            c = client;
+            r = request;
+        }
+        @Override
+        public void run() {
+            c.request(r);
+        }
+    }
+    private void initializeServer(ThreadPoolExecutor tp, Server s){
+        tp.execute(new ServerRunner(s));
+    }
+
+    private void requestClient(ThreadPoolExecutor tp, Client c, Request r){
+        tp.execute(new ClientRequestRunner(c, r));
+    }
+
+    private ThreadPoolExecutor getNewThreadPool(){
+        return new ThreadPoolExecutor(25, 25, 1, TimeUnit.MILLISECONDS, new SynchronousQueue<Runnable>(), new ThreadPoolExecutor.AbortPolicy());
+    }
 
     /*
     When testing data store options #2 and #3,
@@ -18,7 +65,7 @@ public class TestClass{
     */
     @Test
     public void testAWSKill() {
-        
+
     }
     /*
      * When an order is received, the application server accesses the inventory_sets table to see if a set is available.
@@ -27,7 +74,37 @@ public class TestClass{
      */
     @Test
     public void testOrderRecieved() {
-        
+        DBManagerImpl db = new DBManagerImpl();
+        int setToOrder = -1, setQuantity = 0;
+        for(int i=1; i<2000; i++){
+            setQuantity = db.getSetCount(i);
+            if (setQuantity > 0) {
+                setToOrder = i;
+                i = 2000;
+            }
+        }
+
+        ThreadPoolExecutor tp = getNewThreadPool();
+        Server s = new Server();
+        Client c = new Client();
+        Request r = new Request();
+        r.addSet(setToOrder);
+        initializeServer(tp, s);
+        try {
+            Thread.sleep(100);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        requestClient(tp, c, r);
+        tp.shutdown();
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        Assert.assertTrue(db.getSetCount(setToOrder) == (setQuantity - 1));
+
+
     }
 
     /*
