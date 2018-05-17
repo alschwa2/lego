@@ -7,6 +7,8 @@ import ourTeam.Request;
 import ourTeam.Server;
 import sun.nio.ch.ThreadPool;
 
+import java.util.HashMap;
+import java.util.Set;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -117,7 +119,58 @@ public class TestClass{
 
     @Test
     public void testAssembleSets() {
-        
+        DBManagerImpl db = new DBManagerImpl();
+        HashMap<String,Integer> oldPartQuantities = new HashMap<>();
+        int setToOrder = -1, setQuantity = 0, partAmount = 0;
+        boolean setHasParts = true;
+        Set<String> parts = db.getParts(1);
+        for(int i=1; i<2000; i++){
+            setHasParts = true;
+            setQuantity = db.getSetCount(i);
+            if (setQuantity == 0) {
+                parts = db.getParts(i);
+                for (String part : parts){
+                    if(oldPartQuantities.containsKey(part))
+                        partAmount = oldPartQuantities.get(part);
+                    else {
+                        partAmount = db.getPartCount(i, part);
+                        oldPartQuantities.put(part, partAmount);
+                    }
+                    if(db.getPartCount(i, part) <= 0) {
+                        setHasParts = false;
+                        break;
+                    }
+                }
+                if(setHasParts) {
+                    setToOrder = i;
+                    i = 2000;
+                }
+            }
+        }
+
+        ThreadPoolExecutor tp = getNewThreadPool();
+        Server s = new Server();
+        Client c = new Client();
+        Request r = new Request();
+        r.addSet(setToOrder);
+        initializeServer(tp, s);
+        try {
+            Thread.sleep(100);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        requestClient(tp, c, r);
+        tp.shutdown();
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        for(String part : parts){
+            Assert.assertEquals(db.getPartCount(setToOrder,part),oldPartQuantities.get(part));
+        }
+
+
     }
 
     
