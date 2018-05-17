@@ -48,7 +48,9 @@ public class Server
 				try {
 					Socket incoming = ssc.accept();
 					System.out.println("New Connection: Session#" + sessionNum);
-					new Thread(new ConnectionManager(incoming, sessionNum)).start();
+					Thread connectionManager = new Thread(new ConnectionManager(incoming, sessionNum));
+					connectionManager.setDaemon(true);
+					connectionManager.start();
 				} catch (IOException e) {
 					System.err.println("Caught exception while creating socket connection to client.");
 					System.err.println(e.getMessage());
