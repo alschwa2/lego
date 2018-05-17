@@ -1,12 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="aa9d5fbb-0081-4a3f-b4ad-9e7eea716a26" name="Default" comment="server always runs">
+    <list default="true" id="aa9d5fbb-0081-4a3f-b4ad-9e7eea716a26" name="Default" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/ourTeam/Client.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/ourTeam/Client.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/ourTeam/DBManagerImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/ourTeam/DBManagerImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/ourTeam/Server.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/ourTeam/Server.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/TestClass.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/TestClass.java" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/target/" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -21,8 +18,8 @@
       <file leaf-file-name="Client.java" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main/java/ourTeam/Client.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-118">
-              <caret line="74" selection-start-line="74" selection-end-line="74" />
+            <state relative-caret-position="102">
+              <caret line="92" column="42" lean-forward="true" selection-start-line="92" selection-start-column="42" selection-end-line="92" selection-end-column="42" />
             </state>
           </provider>
         </entry>
@@ -48,11 +45,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="TestClass.java" pinned="false" current-in-tab="true">
+      <file leaf-file-name="TestClass.java" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/test/java/TestClass.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="299">
-              <caret line="104" column="26" lean-forward="true" selection-start-line="104" selection-start-column="26" selection-end-line="104" selection-end-column="26" />
+            <state relative-caret-position="282">
+              <caret line="132" lean-forward="true" selection-start-line="132" selection-end-line="132" />
               <folding>
                 <element signature="imports" expanded="true" />
                 <element signature="e#498#499#0" expanded="true" />
@@ -101,11 +98,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="Server.java" pinned="false" current-in-tab="false">
+      <file leaf-file-name="Server.java" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/main/java/ourTeam/Server.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="67">
-              <caret line="23" column="38" lean-forward="true" selection-start-line="23" selection-start-column="38" selection-end-line="23" selection-end-column="38" />
+            <state relative-caret-position="357">
+              <caret line="99" column="111" lean-forward="true" selection-start-line="99" selection-start-column="111" selection-end-line="99" selection-end-column="111" />
               <folding>
                 <element signature="imports" expanded="true" />
               </folding>
@@ -128,9 +125,9 @@
     <option name="CHANGED_PATHS">
       <list>
         <option value="$PROJECT_DIR$/src/main/java/ourTeam/DBManagerImpl.java" />
-        <option value="$PROJECT_DIR$/src/main/java/ourTeam/Client.java" />
         <option value="$PROJECT_DIR$/src/main/java/ourTeam/Server.java" />
         <option value="$PROJECT_DIR$/src/test/java/TestClass.java" />
+        <option value="$PROJECT_DIR$/src/main/java/ourTeam/Client.java" />
       </list>
     </option>
   </component>
@@ -337,20 +334,19 @@
       <workItem from="1526430452210" duration="384000" />
       <workItem from="1526481543992" duration="361000" />
       <workItem from="1526488088363" duration="237000" />
-      <workItem from="1526518387013" duration="5946000" />
+      <workItem from="1526518387013" duration="8663000" />
     </task>
+    <task id="LOCAL-00001" summary="implemented a test to test that the app is actually modifying dynamodb when shipping things. Needed to add a few helper methods in Client to do so">
+      <created>1526526639020</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1526526639020</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
   <component name="TestHistory">
-    <history-entry file="TestClass_testOrderRecieved - 2018.05.16 at 22h 51m 18s.xml">
-      <configuration name="TestClass.testOrderRecieved" configurationId="AndroidJUnit" />
-    </history-entry>
-    <history-entry file="TestClass_testOrderRecieved - 2018.05.16 at 22h 52m 14s.xml">
-      <configuration name="TestClass.testOrderRecieved" configurationId="AndroidJUnit" />
-    </history-entry>
-    <history-entry file="TestClass_testOrderRecieved - 2018.05.16 at 22h 53m 33s.xml">
-      <configuration name="TestClass.testOrderRecieved" configurationId="AndroidJUnit" />
-    </history-entry>
     <history-entry file="TestClass_testOrderRecieved - 2018.05.16 at 22h 55m 42s.xml">
       <configuration name="TestClass.testOrderRecieved" configurationId="AndroidJUnit" />
     </history-entry>
@@ -372,9 +368,18 @@
     <history-entry file="TestClass_testOrderRecieved - 2018.05.16 at 23h 03m 20s.xml">
       <configuration name="TestClass.testOrderRecieved" configurationId="AndroidJUnit" />
     </history-entry>
+    <history-entry file="TestClass_testOrderRecieved - 2018.05.16 at 23h 05m 34s.xml">
+      <configuration name="TestClass.testOrderRecieved" configurationId="AndroidJUnit" />
+    </history-entry>
+    <history-entry file="TestClass_testOrderRecieved - 2018.05.16 at 23h 06m 33s.xml">
+      <configuration name="TestClass.testOrderRecieved" configurationId="AndroidJUnit" />
+    </history-entry>
+    <history-entry file="TestClass_testOrderRecieved - 2018.05.16 at 23h 06m 47s.xml">
+      <configuration name="TestClass.testOrderRecieved" configurationId="AndroidJUnit" />
+    </history-entry>
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="6985000" />
+    <option name="totallyTimeSpent" value="9702000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-7" y="-7" width="1550" height="838" extended-state="6" />
@@ -448,7 +453,8 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="server always runs" />
-    <option name="LAST_COMMIT_MESSAGE" value="server always runs" />
+    <MESSAGE value="implemented a test to test that the app is actually modifying dynamodb when shipping things. Needed to add a few helper methods in Client to do so" />
+    <option name="LAST_COMMIT_MESSAGE" value="implemented a test to test that the app is actually modifying dynamodb when shipping things. Needed to add a few helper methods in Client to do so" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -787,27 +793,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/ourTeam/Client.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-118">
-          <caret line="74" selection-start-line="74" selection-end-line="74" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/ourTeam/Server.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="67">
-          <caret line="23" column="38" lean-forward="true" selection-start-line="23" selection-start-column="38" selection-end-line="23" selection-end-column="38" />
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/test/java/TestClass.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="299">
-          <caret line="104" column="26" lean-forward="true" selection-start-line="104" selection-start-column="26" selection-end-line="104" selection-end-column="26" />
+        <state relative-caret-position="282">
+          <caret line="132" lean-forward="true" selection-start-line="132" selection-end-line="132" />
           <folding>
             <element signature="imports" expanded="true" />
             <element signature="e#498#499#0" expanded="true" />
@@ -818,6 +807,23 @@
             <element signature="e#662#663#0" expanded="true" />
             <element signature="e#677#678#0" expanded="true" />
             <element signature="e#702#703#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/ourTeam/Client.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="102">
+          <caret line="92" column="42" lean-forward="true" selection-start-line="92" selection-start-column="42" selection-end-line="92" selection-end-column="42" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/ourTeam/Server.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="357">
+          <caret line="99" column="111" lean-forward="true" selection-start-line="99" selection-start-column="111" selection-end-line="99" selection-end-column="111" />
+          <folding>
+            <element signature="imports" expanded="true" />
           </folding>
         </state>
       </provider>

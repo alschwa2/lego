@@ -26,7 +26,7 @@ public class Client
 			ObjectOutputStream toServer = new ObjectOutputStream(socket.getOutputStream());
 
 			Thread requestThread = new Thread(()->{
-				for (int requestNum = 0; true; requestNum++) {
+				for (int requestNum = 0; requestNum < 100; requestNum++) {
 					try {
 						Thread.sleep(50);
 
@@ -48,6 +48,9 @@ public class Client
 			Thread readThread = new Thread(()->{
 				while (fromServer.hasNextLine()) System.out.println(fromServer.nextLine());
 			});
+
+			requestThread.setDaemon(true);
+			readThread.setDaemon(true);
 
 			requestThread.start();
 			readThread.start();
@@ -86,6 +89,9 @@ public class Client
 			Thread readThread = new Thread(()->{
 				while (fromServer.hasNextLine()) System.out.println(fromServer.nextLine());
 			});
+
+			requestThread.setDaemon(true);
+			readThread.setDaemon(true);
 
 			requestThread.start();
 			readThread.start();
