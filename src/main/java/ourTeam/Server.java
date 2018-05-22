@@ -22,7 +22,7 @@ public class Server
 	// Only 25 unshipped orders at a time. Use a threadpool to enforce this, and to allow concurrency.
 	private final ThreadPoolExecutor threadPool = new ThreadPoolExecutor(25, 25, 1, TimeUnit.MILLISECONDS, new SynchronousQueue<Runnable>(), new ThreadPoolExecutor.AbortPolicy());
 	private final ThreadPoolExecutor manufacturePartsThreadPool = new ThreadPoolExecutor(100, 100, 1, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(), new ThreadPoolExecutor.DiscardPolicy());
-	private final DBManager db = new DBManagerImpl();
+	private final DBManager db = new DBMDummyImpl();//This is a dummy Database. When using AWS database, switch to DBManagerImpl instance
 	private final DBLockHandler lockHandler = new DBLockHandler();
 
 	public static void main(String[] args) {

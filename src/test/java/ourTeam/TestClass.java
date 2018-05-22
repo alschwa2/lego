@@ -68,15 +68,6 @@ public class TestClass{
     }
 
     /*
-    When testing data store options #2 and #3,
-     the unit tests must use the AWS SDK to kill some of the EC2 machines that the data store
-      is running on and show that the system still works correctly and returns correct results
-    */
-    @Test
-    public void testAWSKill() {
-
-    }
-    /*
      * When an order is received, the application server accesses the inventory_sets table to see if a set is available.
      * If so, it reduces the inventory_sets.quantity of the set by one and replies to the customer with a message that
 	 * the set has been shipped.
@@ -197,7 +188,7 @@ public class TestClass{
      * When an order is filled, the server will include an “order shipped” message to the client.
     */
 
-    //@Test
+    @Test
     public void testNotEnoughParts() {
         DBManagerImpl db = new DBManagerImpl();
         HashMap<String,Integer> oldPartQuantities = new HashMap<>();
