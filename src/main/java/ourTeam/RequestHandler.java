@@ -36,7 +36,7 @@ public class RequestHandler implements Runnable {
     private static final int INCREMENT_PARTS_BY = 30; //how much the parts should be incremented when they are needed
 
 
-    public RequestHandler(Request request, DBManager DB, ThreadPoolExecutor threadPool, DBLockHandler locks, PrintWriter toClient) {
+    RequestHandler(Request request, DBManager DB, ThreadPoolExecutor threadPool, DBLockHandler locks, PrintWriter toClient) {
         this.request = request;
         this.DB = DB;
         this.toClient = toClient;
@@ -51,7 +51,7 @@ public class RequestHandler implements Runnable {
     @Override
     public void run() {
         HashMap<Integer, Integer> requestedSetsMap = request.getSets(); //setNames/quantities desired
-        HashMap<Integer, Integer> setsNotAvailable = new HashMap<>(); // list to contain sets that are not available
+        HashMap<Integer, Integer> setsNotAvailable = new HashMap<Integer, Integer>(); // list to contain sets that are not available
         HashMap<Integer, Integer>  availableSets = new HashMap<Integer, Integer>(); //available sets which will be reserved right away, to prevent race conditions/over-locking down the line
         /*
          * figure out which sets we do not have in stock
@@ -217,7 +217,7 @@ public class RequestHandler implements Runnable {
 
     /**
      * Determines the amount of sets, based on the client's request, which are available and not available
-     * @param requestedSetsMap
+     * @param requestedSetsMap The requested sets from the client
      * @param setsNotAvailable The map into which the function will store the sets which are not available <set : Amount needed>
      * @param availableSets The map into which the function will store the sets available <Set : Amount available to ship></Set>
      */
@@ -269,7 +269,6 @@ public class RequestHandler implements Runnable {
      */
     private Map<String, SetPartAmountTuple> determineNeededParts(HashMap<Integer, Integer> setsToManufacture){
         Map<String, SetPartAmountTuple> neededParts = new HashMap<String, SetPartAmountTuple>();//part needed and <set, amountOfPArtNeeded> tuple
-        int actualPartQuantity, neededPartQuantity, differenceNeeded = 0; // placeholders for later
 
         for (Integer set : setsToManufacture.keySet()) { //for every set
             Set<String> setParts = DB.getParts(set);//get a set of its parts and put that set in a map under the set's name
@@ -292,7 +291,7 @@ public class RequestHandler implements Runnable {
     /**
      * Manufactures the specified parts by setting a timer in a thread for the amount of parts needed divided by INCREMENT_PARTS_BY, rounded up, then multiplied by 100.
      * This ensures that, for each part, 100 ms are put into the timer for each INCREMENT_PARTS_BY interval in the amount of parts needed for each part.
-     * @param neededParts
+     * @param neededParts The parts and part amnounts to manufacture
      */
     private void manufactureParts(Map<String, SetPartAmountTuple> neededParts) {
         List<Callable<Object>> partRunnable = new ArrayList<Callable<Object>>();
@@ -316,7 +315,7 @@ public class RequestHandler implements Runnable {
     class PartConstructor implements Runnable {
     	private int time;
 
-    	public PartConstructor(int time) {
+    	PartConstructor(int time) {
     		this.time = time;
     	}
 
